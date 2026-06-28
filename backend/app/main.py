@@ -5,13 +5,13 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import __version__
-from app.api import analysis, backtest, data, ext_data, financials, indices, intraday, kline, market_recap, monitor_rules, alerts, overview, pipeline, screener, settings as settings_api, signals, stock_analysis, strategy, watchlist
+from app.api import analysis, auth as auth_api, backtest, data, ext_data, financials, indices, intraday, kline, market_recap, monitor_rules, alerts, overview, pipeline, screener, settings as settings_api, signals, stock_analysis, strategy, watchlist
 from app.api.routes import router as core_router
-from app.auth import install_access_key_auth, router as auth_router
 from app.config import settings
 from app.jobs import daily_pipeline
 from app.services.quote_service import QuoteService
@@ -175,9 +175,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS: 允许局域网访问 (自托管场景, 放开所有来源)
-# 注: allow_credentials=True 与 allow_origins=['*'] 不能共存 (浏览器规范),
-# 本项目认证走 header (API Key), 不依赖 cookie, 故关闭 credentials 换取通配来源。
+# CORS: 允许局域网访问 (自托管场景, 放开所有来源)。
+# 前端生产环境同源部署, 开发环境经 Vite proxy 转发, 认证 cookie 不依赖跨域 credentials。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -185,11 +184,56 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-install_access_key_auth(app)
+
+
+# ================================================================
+# 访问认证中间件
+# ================================================================
+# 拦截所有 /api/ 请求, 三种状态:
+#   1. 未设密码 + 本机/内网 → 放行(让本机用户访问面板 + 调 /api/auth/setup 设密码)
+#   2. 未设密码 + 公网       → 拒绝(403, 防裸奔也防抢占; 引导本机设密码)
+#   3. 已设密码              → 检查 session, 无效则 401(前端跳登录)
+# 白名单: /api/auth/* (设密码/登录本身)、/health 等探活。
+_AUTH_WHITELIST_PREFIX = ("/api/auth/",)
+_AUTH_WHITELIST_EXACT = ("/health", "/api/health", "/openapi.json", "/docs", "/redoc")
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    # 仅 /api/ 走认证; 静态资源(前端页面/assets)放行, 由前端处理跳转
+    if not path.startswith("/api/"):
+        return await call_next(request)
+    # 白名单放行(设密码/登录/探活本身不拦)
+    if path.startswith(_AUTH_WHITELIST_PREFIX) or path in _AUTH_WHITELIST_EXACT:
+        return await call_next(request)
+
+    from app.services import auth as auth_service
+    # 情况 1+2: 未设密码
+    if not auth_service.is_configured():
+        # 本机/内网 → 放行(服务器主人可访问, 并去 /login 设密码)
+        if auth_api._is_local_network(auth_api._client_ip(request)):
+            return await call_next(request)
+        # 公网 → 拒绝。不裸奔, 也不给公网设密码的机会(防抢占)
+        return JSONResponse(
+            status_code=403,
+            content={
+                "detail": "面板尚未初始化访问密码,请通过 SSH/本机浏览器访问以设置密码",
+                "code": "NOT_INITIALIZED",
+            },
+        )
+
+    # 情况 3: 已设密码, 检查会话
+    token = request.cookies.get(auth_api.COOKIE_NAME)
+    if token and auth_service.is_valid_session(token):
+        return await call_next(request)
+    # 未登录: 401(前端跳登录页)
+    return JSONResponse(status_code=401, content={"detail": "未登录或会话已过期"})
+
 
 # 路由
-app.include_router(auth_router)
 app.include_router(core_router)
+app.include_router(auth_api.router)
 app.include_router(kline.router)
 app.include_router(watchlist.router)
 app.include_router(screener.router)
@@ -214,8 +258,6 @@ app.include_router(alerts.router)
 # 能力门控异常 → 403(而非默认 500)
 # 业务代码用 capset.require(Cap.X) 断言能力,缺失时抛 CapabilityDenied;
 # 若不注册 handler 会冒泡成 500 Internal Server Error,对前端不友好且语义错误。
-from fastapi import Request
-from fastapi.responses import JSONResponse
 from app.tickflow.capabilities import CapabilityDenied
 
 

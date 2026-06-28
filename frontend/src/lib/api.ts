@@ -4,26 +4,25 @@
 // Prod:同源(FastAPI 托管前端 dist)
 
 import { toast } from '@/components/Toast'
-import { authHeaders } from './auth'
 
 const BASE = ''
 
 function makeHeaders(init?: HeadersInit, json = true): Headers {
   const headers = new Headers(init)
   if (json && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-  for (const [k, v] of Object.entries(authHeaders())) headers.set(k, v)
   return headers
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const isFormData = init?.body instanceof FormData
   const headers = makeHeaders(init?.headers, !isFormData)
-  const res = await fetch(`${BASE}${path}`, { ...init, headers })
+  const res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: 'same-origin' })
   if (!res.ok) {
     let detail = ''
     try { const j = JSON.parse(await res.text()); detail = j.detail ?? j.message ?? '' } catch { /* ignore */ }
     const msg = detail || `${res.status} ${res.statusText}`
-    toast(msg, 'error')
+    // 401 (未登录/会话过期) 不弹 toast — 由全局认证拦截器统一跳登录页, 避免刷屏
+    if (res.status !== 401) toast(msg, 'error')
     throw new Error(msg)
   }
   return res.json() as Promise<T>
@@ -709,14 +708,28 @@ export interface StrategyAlertEvent {
 
 // ===== API surface =====
 export const api = {
-  authStatus: () => request<{ enabled: boolean }>('/api/auth/status'),
-  authLogin: (key: string) =>
+  health: () => request<{ status: string; version: string; mode: string }>('/health'),
+
+  // ===== Auth (访问认证) =====
+  authStatus: () =>
+    request<{ configured: boolean; authenticated: boolean }>('/api/auth/status'),
+  authSetup: (password: string) =>
+    request<{ ok: boolean }>('/api/auth/setup', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+  authLogin: (password: string) =>
     request<{ ok: boolean }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({ password }),
     }),
-
-  health: () => request<{ status: string; version: string; mode: string }>('/health'),
+  authLogout: () =>
+    request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
+  authChangePassword: (oldPassword: string, newPassword: string) =>
+    request<{ ok: boolean }>('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    }),
 
   settings: () => request<SettingsState>('/api/settings'),
   saveTickflowKey: (api_key: string) =>

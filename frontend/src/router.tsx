@@ -5,6 +5,7 @@ import { Screener } from './pages/Screener'
 import { Backtest } from './pages/Backtest'
 import { Financials } from './pages/Financials'
 import { Onboarding } from './pages/Onboarding'
+import { Auth } from './pages/Auth'
 import { Data } from './pages/Data'
 import { Monitor } from './pages/Monitor'
 import { Trading } from './pages/Trading'
@@ -21,7 +22,6 @@ import { Indices } from './pages/Indices'
 import { Dev } from './pages/Dev'
 import { useSettings } from './lib/useSharedQueries'
 import { Logo } from './components/Logo'
-import { AuthGate } from './components/AuthGate'
 
 // 首次使用守卫 —— 未完成向导则重定向到 /onboarding
 // 只挂在根路由上;/onboarding 本身不被守卫,避免循环重定向。
@@ -51,15 +51,14 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 export const router = createBrowserRouter([
-  { path: '/onboarding', element: <AuthGate><Onboarding /></AuthGate> },
+  { path: '/onboarding', element: <Onboarding /> },
+  { path: '/login', element: <Auth /> },
   {
     path: '/',
     element: (
-      <AuthGate>
-        <OnboardingGuard>
-          <Layout />
-        </OnboardingGuard>
-      </AuthGate>
+      <OnboardingGuard>
+        <Layout />
+      </OnboardingGuard>
     ),
     children: [
       { index: true, element: <Dashboard /> },

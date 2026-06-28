@@ -5,7 +5,6 @@ import { getQueryConfig } from './useQueryConfig'
 import { toast } from '@/components/Toast'
 import { pushAlertToasts } from '@/components/AlertToast'
 import type { StrategyAlertEvent } from './api'
-import { withAccessKey } from './auth'
 
 /**
  * 全局 SSE hook: 监听后端行情更新推送 + 策略监控通知。
@@ -55,7 +54,7 @@ export function useQuoteStream(
     // (quotes_updated 行情刷新受 enabled 控制, strategy_alert 始终处理)
 
     const connect = () => {
-      const es = new EventSource(withAccessKey('/api/intraday/stream'))
+      const es = new EventSource('/api/intraday/stream')
       esRef.current = es
 
       // sse-starlette ping 心跳走 SSE comment，不会到达这里
