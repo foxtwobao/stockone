@@ -1,12 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- 中间透明(无底色, 显示页面/浏览器背景) -->
-  <!-- 线条加粗: 浏览器 tab 尺寸很小, 需要更粗才能看清 -->
-  <!-- 左方括号 -->
-  <path d="M10 4 L4 4 L4 28 L10 28" stroke="#5B21B6" stroke-width="3" stroke-linejoin="miter"/>
-  <!-- 右方括号 -->
-  <path d="M22 4 L28 4 L28 28 L22 28" stroke="#5B21B6" stroke-width="3" stroke-linejoin="miter"/>
-  <!-- K 线 wick(上下影) -->
-  <line x1="16" y1="7" x2="16" y2="25" stroke="#5B21B6" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.7"/>
-  <!-- K 线 body -->
-  <rect x="12.5" y="9" width="7" height="10" fill="#5B21B6" rx="0.5"/>
+  <rect x="3" y="3" width="26" height="26" rx="7" fill="#07110E"/>
+  <rect x="4.5" y="4.5" width="23" height="23" rx="5.5" stroke="#16A34A" stroke-opacity="0.55" stroke-width="2"/>
+  <path d="M8.5 20.7c2.2 2.4 6.5 2.6 9 .9 2.9-2 1.8-5.1-1.9-5.8l-2.2-.4c-4-.8-5-4.3-1.9-6.4 2.7-1.8 7.4-1.1 9.5 1.5" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20.2 10.6 23.5 7.3l3.3 3.3" stroke="#38BDF8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="23.5" cy="7.3" r="1.7" fill="#38BDF8"/>
 </svg>

@@ -93,6 +93,7 @@ class Settings(BaseSettings):
     port: int = 3018
     log_level: str = "INFO"
     backtest_range_guard: bool = False
+    app_access_key: str = ""
 
     # Data — frozen: exe 同级 data/ 子目录; 非 frozen: 项目根 data/
     # (均可被环境变量 DATA_DIR 覆盖, pydantic-settings 自动注入)

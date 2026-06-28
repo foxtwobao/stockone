@@ -4,13 +4,20 @@
 // Prod:同源(FastAPI 托管前端 dist)
 
 import { toast } from '@/components/Toast'
+import { authHeaders } from './auth'
 
 const BASE = ''
 
+function makeHeaders(init?: HeadersInit, json = true): Headers {
+  const headers = new Headers(init)
+  if (json && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  for (const [k, v] of Object.entries(authHeaders())) headers.set(k, v)
+  return headers
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const isFormData = init?.body instanceof FormData
-  const headers: Record<string, string> = {}
-  if (!isFormData) headers['Content-Type'] = 'application/json'
+  const headers = makeHeaders(init?.headers, !isFormData)
   const res = await fetch(`${BASE}${path}`, { ...init, headers })
   if (!res.ok) {
     let detail = ''
@@ -702,6 +709,13 @@ export interface StrategyAlertEvent {
 
 // ===== API surface =====
 export const api = {
+  authStatus: () => request<{ enabled: boolean }>('/api/auth/status'),
+  authLogin: (key: string) =>
+    request<{ ok: boolean }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ key }),
+    }),
+
   health: () => request<{ status: string; version: string; mode: string }>('/health'),
 
   settings: () => request<SettingsState>('/api/settings'),
@@ -1336,7 +1350,7 @@ export const api = {
   }> {
     const res = await fetch('/api/financials/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: makeHeaders(),
       body: JSON.stringify({ symbol, focus: focus ?? '' }),
     })
     if (!res.ok) {
@@ -1408,7 +1422,7 @@ export const api = {
   }> {
     const res = await fetch('/api/stock-analysis/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: makeHeaders(),
       body: JSON.stringify({ symbol, focus: focus ?? '' }),
     })
     if (!res.ok) {
@@ -1470,7 +1484,7 @@ export const api = {
   }> {
     const res = await fetch('/api/market-recap/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: makeHeaders(),
       body: JSON.stringify({ as_of: asOf ?? null, focus: focus ?? '' }),
     })
     if (!res.ok) {

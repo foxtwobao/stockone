@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { StrategyBacktestResult } from './api'
+import { authHeaders, withAccessKey } from './auth'
 
 /**
  * 全局回测任务管理 (SSE 模式 + 任务缓存 + 重连支持)。
@@ -70,7 +71,7 @@ function connectSSE(url: string): void {
     eventSource = null
   }
 
-  const es = new EventSource(url)
+  const es = new EventSource(withAccessKey(url))
   eventSource = es
 
   es.addEventListener('progress', (e: MessageEvent) => {
@@ -187,7 +188,7 @@ export async function stopBacktest(): Promise<void> {
       // 这里用 cancel 接口: POST /strategy/cancel, body 带 qs 的参数。
       await fetch('/api/backtest/strategy/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ qs }),
       }).catch(() => {})
     } catch { /* ignore */ }

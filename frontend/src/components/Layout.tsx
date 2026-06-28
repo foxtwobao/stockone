@@ -50,7 +50,7 @@ import { cn } from '@/lib/cn'
 import { setCurrentTotal as setAlertTotal, useUnreadAlerts } from '@/lib/monitorBadge'
 
 // 品牌色 — 只用于 logo / brand 区域,不影响功能语义色
-const BRAND = '#8B5CF6'
+const BRAND = '#16A34A'
 const TICKFLOW_REGISTER_URL = 'https://tickflow.org/auth/register?ref=V3KDKGXPEA'
 
 const CORE_INDEXES = [
@@ -390,8 +390,8 @@ export function Layout() {
               className="font-mono font-bold text-[13px] tracking-[0.06em] text-foreground leading-tight"
               style={{ textShadow: `0 0 10px ${BRAND}44` }}
             >
-              <div>TickFlow</div>
-              <div>Stock Panel</div>
+              <div>StockOne</div>
+              <div>Quant Terminal</div>
             </div>
           </div>
 

@@ -1,9 +1,9 @@
-// 原创 logo:方括号 [ ] 包裹一根带 wick 的 K 线
+// StockOne logo: rounded terminal mark + S-shaped market path.
 //
 // 概念:
-//   - 外层 brackets:终端 / 代码 / 引用边界 — 赛博 + quant 气质
-//   - 中央 wick+body:一根标准 K 线 — 直接的金融指代
-//   - body 偏上 + 下影长:bullish 站稳感 (上影短 / 下影长)
+//   - 外层框:本地量化工作台 / 终端边界
+//   - S 形路径:StockOne 的 S,也是价格走势
+//   - 右上节点:突破点 / 当前信号
 //
 // 用 currentColor,继承父级 color 设定,方便切换品牌色。
 interface LogoProps {
@@ -22,37 +22,34 @@ export function Logo({ className, size = 32, style }: LogoProps) {
       className={className}
       style={style}
       role="img"
-      aria-label="TickFlow Stock Panel"
+      aria-label="StockOne"
     >
-      {/* 左方括号 */}
       <path
-        d="M10 4 L4 4 L4 28 L10 28"
+        d="M7 4.5h18A2.5 2.5 0 0 1 27.5 7v18a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 25V7A2.5 2.5 0 0 1 7 4.5Z"
         stroke="currentColor"
         strokeWidth="2"
-        strokeLinejoin="miter"
-        strokeLinecap="butt"
+        strokeLinejoin="round"
+        strokeOpacity="0.28"
       />
-      {/* 右方括号 */}
       <path
-        d="M22 4 L28 4 L28 28 L22 28"
+        d="M9 20.8c2.1 2.3 6.2 2.5 8.6.9 2.8-1.9 1.7-4.9-1.8-5.6l-2.1-.4c-3.8-.8-4.8-4.2-1.8-6.2 2.6-1.8 7.1-1.1 9.1 1.4"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="miter"
-        strokeLinecap="butt"
-      />
-      {/* K 线 wick(上下影线,半透明) */}
-      <line
-        x1="16" y1="7" x2="16" y2="25"
-        stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2.4"
         strokeLinecap="round"
-        strokeOpacity="0.6"
+        strokeLinejoin="round"
       />
-      {/* K 线 body — 偏上,上影短/下影长, bullish 站稳感 */}
-      <rect
-        x="13" y="9" width="6" height="10"
+      <path
+        d="M20.4 10.9 23.5 7.8 26.6 10.9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="23.5"
+        cy="7.8"
+        r="1.6"
         fill="currentColor"
-        rx="0.5"
       />
     </svg>
   )

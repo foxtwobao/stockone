@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from app import __version__
 from app.api import analysis, backtest, data, ext_data, financials, indices, intraday, kline, market_recap, monitor_rules, alerts, overview, pipeline, screener, settings as settings_api, signals, stock_analysis, strategy, watchlist
 from app.api.routes import router as core_router
+from app.auth import install_access_key_auth, router as auth_router
 from app.config import settings
 from app.jobs import daily_pipeline
 from app.services.quote_service import QuoteService
@@ -185,8 +186,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+install_access_key_auth(app)
 
 # 路由
+app.include_router(auth_router)
 app.include_router(core_router)
 app.include_router(kline.router)
 app.include_router(watchlist.router)
