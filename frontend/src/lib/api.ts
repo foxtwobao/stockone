@@ -362,6 +362,7 @@ export interface StrategyDetail {
   entry_signals: string[]
   exit_signals: string[]
   stop_loss: number | null
+  take_profit: number | null
   trailing_stop: number | null
   trailing_take_profit_activate: number | null
   trailing_take_profit_drawdown: number | null
@@ -447,6 +448,8 @@ export interface AlertEvent {
   signals?: string[]
   severity?: string
   strategy_id?: string
+  conditions?: MonitorCondition[]
+  logic?: 'and' | 'or'
 }
 
 /** 生成监控规则 id (时间戳 + 随机后缀), 用户无需手动填写。 */
@@ -588,6 +591,7 @@ export interface StrategyBacktestResult {
     entry_signals: string[]
     exit_signals: string[]
     stop_loss: number | null
+    take_profit: number | null
     trailing_stop: number | null
     trailing_take_profit_activate: number | null
     trailing_take_profit_drawdown: number | null
@@ -687,6 +691,9 @@ export interface Preferences {
   strategy_monitor_enabled: boolean
   strategy_monitor_ids: string[]
   system_notify_enabled: boolean
+  feishu_webhook_url?: string
+  feishu_webhook_secret?: string
+  webhook_enabled_default?: boolean
   sidebar_index_symbols: string[]
   nav_order: string[]
   nav_hidden: string[]
@@ -840,6 +847,16 @@ export const api = {
     }),
   updateSystemNotify: (enabled: boolean) =>
     request<{ system_notify_enabled: boolean }>('/api/settings/preferences/system-notify', {
+      method: 'PUT',
+      body: JSON.stringify({ enabled }),
+    }),
+  updateFeishuWebhook: (url: string, secret: string = '') =>
+    request<{ feishu_webhook_url: string; feishu_webhook_secret: string }>('/api/settings/preferences/feishu-webhook', {
+      method: 'PUT',
+      body: JSON.stringify({ url, secret }),
+    }),
+  updateWebhookDefault: (enabled: boolean) =>
+    request<{ webhook_enabled_default: boolean }>('/api/settings/preferences/webhook-enabled-default', {
       method: 'PUT',
       body: JSON.stringify({ enabled }),
     }),
