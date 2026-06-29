@@ -367,9 +367,13 @@ def build_market_overview(
         as_of: 指定日期,None 则取最新有数据日。
     """
     svc = ScreenerService(repo)
-    as_of = as_of or svc.latest_date()
+    requested_as_of = as_of
+    latest_as_of = svc.latest_date()
+    as_of = as_of or latest_as_of
     status = _quote_status(quote_service)
-    indices = _index_quotes(repo, quote_service, as_of)
+    use_realtime_indices = quote_service and (requested_as_of is None or requested_as_of == latest_as_of)
+    index_as_of = None if use_realtime_indices else as_of
+    indices = _index_quotes(repo, quote_service, index_as_of)
 
     if not as_of:
         return {
